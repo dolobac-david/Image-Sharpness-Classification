@@ -2,10 +2,13 @@ clear;
 close all;
 clc;
 
+% Edit 
+fileName = "C:\Users\david\Desktop\roz\projekt\20240222";
+
 radiusStep = 10:5:120;
 angles = 1:360;
 for i=11:35
-    I = imread("20240222\VG25_2_0"+string(i)+"_GO_E2000_6m.png");
+    I = imread(fileName + "\VG25_2_0"+string(i)+"_GO_E2000_6m.png");
     % imshow(I)
     
     [imgHeight, imgWidth] = size(I);
