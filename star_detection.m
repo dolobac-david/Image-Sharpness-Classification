@@ -2,22 +2,18 @@ clear;
 close all;
 clc;
 
-% Edit 
+% Edit this line individually.
 fileName = "C:\Users\david\Desktop\roz\projekt\20240222";
 
-radiusStep = 10:5:120;
-angles = 1:360;
 for i=11:35
     I = imread(fileName + "\VG25_2_0"+string(i)+"_GO_E2000_6m.png");
     % imshow(I)
     
     [imgHeight, imgWidth] = size(I);
-    radiusStep = 10:5:120;
     points = detectSIFTFeatures(I);
-    periodVariance = zeros(points.length,width(radiusStep));
-    peaksVariance = zeros(points.length,width(radiusStep));
+    radiusStep = 10:5:120;
+    periodVariance = nan(points.length,width(radiusStep));
     for j=1:points.length
-        outOfBoundary = false;
         centerOfStar = points.Location(j,:);
         
 %         figure;
@@ -28,65 +24,29 @@ for i=11:35
 %         hold off;
         
         for k=1:width(radiusStep)
-%             figure;
-%             imshow(I)
-%             title('Radius = ' + string(radiusStep(k)));
-%             hold on;
-%             plot(centerOfStar(1),centerOfStar(2),'r+', 'MarkerSize', 10);
-%             viscircles(centerOfStar,radiusStep(k));
-        
-            x = centerOfStar(1) + radiusStep(k)*cosd(angles);
-            y = centerOfStar(2) + radiusStep(k)*sind(angles);
-%             plot(x,y,'g+', 'MarkerSize', 10);
-    
-            xNearestPixel = round(x);
-            yNearestPixel = round(y);
-    
-%             plot(xNearestPixel,yNearestPixel,'b+', 'MarkerSize', 10);
-%             legend('Center');
-%             hold off;
+            [pixelValues, outOfBoundary] = pixelValuesOfCircle(I,imgHeight, imgWidth, centerOfStar, radiusStep(k));       
             
-            for l=1:width(angles)
-                if yNearestPixel(l) > imgHeight || xNearestPixel(l) > imgWidth || yNearestPixel(l) <= 0 || xNearestPixel(l) <= 0 
-                    outOfBoundary = true;
-                    break;
-                else
-                    outOfBoundary = false;
-                    pixelValue(l) = I(yNearestPixel(l),xNearestPixel(l));
-                end
+            if outOfBoundary
+                break;
             end
-    
-            if ~outOfBoundary
-%                 figure;
-%                 plot(angles,pixelValue);
-%                 hold on;
-%                 title("radius = " + string(radiusStep(k)) + ", angle step size = 1 deg")
-%                 xlabel("angles [rad]");
-%                 ylabel("Digital values");
-        
-                [peaks,locs] = findpeaks(double(pixelValue),angles);
+
+            [peaks,locs] = findpeaks(double(pixelValues));
                 
 %                 plot(locs,peaks,"g+");
 %                 hold off;
                 
-                period = diff(locs);    
-                if length(period) > 1
-                    periodVariance(j,k) = var(period);
-                    peaksVariance(j,k) = var(peaks);
-                else
-                    periodVariance(j,k) = nan;
-                    peaksVariance(j,k) = nan;
-                end
-            else
-                periodVariance(j,k) = nan;
-                peaksVariance(j,k) = nan;
+            period = diff(locs);    
+            if length(period) > 1
+                periodVariance(j,k) = var(period);
             end
         end
-%         close all;
     end
+%         close all;
 
     [minPeriodVariances, idxOfRadii] = min(periodVariance,[],2);
     [minPeriodVariance, idxOfPoint] = min(minPeriodVariances);
+    
+%     [B, idx] = sort(minPeriodVariances);
 
     figure;
     imshow(I);
@@ -94,28 +54,95 @@ for i=11:35
     title("Center of star, image " + string(i));
     plot(points(idxOfPoint));
     hold off;
-% 
-%     [B,idx] = mink(minPeriodVariances,10);
 
-%     figure;
-%     imshow(I);
-%     hold on;
-%     title("10 strongest candidates for center of star, image " + string(i));
-%     plot(points(idx));
-%     hold off;
+    % Estimated center of star.
+    centerOfStar = points.Location(idxOfPoint,:);
 
-%     [minPeaksVariances, idxOfRadii] = min(peaksVariance,[],2);
-%     [minPeakVariance, idxOfPoint] = min(minPeaksVariances);
+    % Estimate number of line pairs in star.
+    maxRadius = 110;
+    pixelValues = pixelValuesOfCircle(I,imgHeight, imgWidth, centerOfStar, maxRadius);
+    [peaks,locs] = findpeaks(double(pixelValues));
+    numberOfLinePairsOfStar = width(peaks);
 
-%     figure;
-%     imshow(I);
-%     hold on;
-%     title("Center of star, peak variance, image " + string(i));
-%     plot(points(idxOfPoint));
-%     hold off;
+    % Transform circles around center of star into spatial frequency Line Pairs / Picture Height
+    % and estimate contrast for every circle.
+    radiusStep = maxRadius:-2:10;
+    linePairsPerPictureHeight = zeros(1,width(radiusStep));
+    MTF = zeros(1,width(radiusStep));
+    for j=1:width(radiusStep)
+        linePairWidthInPixels = (2*pi*radiusStep(j)) / numberOfLinePairsOfStar;
+        linePairsPerPictureHeight(j) = imgHeight / linePairWidthInPixels;
+
+        pixelValues= pixelValuesOfCircle(I,imgHeight, imgWidth, centerOfStar, radiusStep(j));
+%         figure;
+%         imshow(I)
+%         title('Radius = ' + string(radiusStep(j)));
+%         hold on;
+%         plot(centerOfStar(1),centerOfStar(2),'r+', 'MarkerSize', 10);
+%         viscircles(centerOfStar,radiusStep(j));
+
+%         figure;
+%         plot(pixelValues);
+%         hold on;
+%         title("radius = " + string(radiusStep(j)) + ", angle step size = 1 deg")
+%         xlabel("angles [deg]");
+%         ylabel("Digital values");
+
+        Imax = max(pixelValues);
+        Imin = min(pixelValues);
+        if j==1
+            C0 = (Imax -Imin) /(Imax+Imin);
+        end
+        C = (Imax -Imin) /(Imax+Imin);
+        MTF(j) = C/C0;
+    end
+    figure;
+    plot(linePairsPerPictureHeight,MTF)
+    title("MTF of picture "+string(i));
+    xlabel("LP/PH");
+    ylabel("MTF");
 end
 
-function centerOfStar = findCenterOfStarPixelPrecision(I)
+function [pixelValues, outOfBoundary]= pixelValuesOfCircle(I,imgHeight, imgWidth, centerOfCircle, radius)
+
+% figure;
+% imshow(I)
+% title('Radius = ' + string(radius);
+% hold on;
+% plot(centerOfStar(1),centerOfStar(2),'r+', 'MarkerSize', 10);
+% viscircles(centerOfStar,radius);
+
+angles = 1:360;
+x = centerOfCircle(1) + radius*cosd(angles);
+y = centerOfCircle(2) + radius*sind(angles);
+%             plot(x,y,'g+', 'MarkerSize', 10);
+    
+xNearestPixel = round(x);
+yNearestPixel = round(y);
+    
+% plot(xNearestPixel,yNearestPixel,'b+', 'MarkerSize', 10);
+% legend('Center');
+% hold off;
+
+outOfBoundary = false;
+pixelValues = zeros(1,width(angles));
+if nnz(yNearestPixel > imgHeight) ~= 0 || nnz(xNearestPixel > imgWidth) ~=0 || nnz(yNearestPixel <= 0) ~= 0 || nnz(xNearestPixel <= 0) ~=0 
+    outOfBoundary = true;
+else
+    for i=1:width(angles)
+        pixelValues(i) = I(yNearestPixel(i),xNearestPixel(i));
+    end
+
+%     figure;
+%     plot(angles,pixelValues);
+%     hold on;
+%     title("radius = " + string(radius) + ", angle step size = 1 deg")
+%     xlabel("angles [rad]");
+%     ylabel("Digital values");        
+end
+end
+
+function centerOfStar = refineCenterOfStarLocation(I)
 
 rows = sum(I,2);
 cols = sum(I,1);
