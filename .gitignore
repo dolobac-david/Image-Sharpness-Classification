@@ -31,5 +31,8 @@ codegen/
 octave-workspace
 
 # Dataset
-*.png
+/Dataset
+/cropped
 *.jpg
+
+*.bak
