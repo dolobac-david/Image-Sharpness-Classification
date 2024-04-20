@@ -3,8 +3,8 @@ close all;
 clc;
 
 % Edit this line individually.
-%fileName = "C:\Users\david\Desktop\roz\projekt\20240222";
-fileName = "E:\Škola\Rocnik5\MPC-ROZ\projekt\project_MPC-ROZ\Dataset";
+fileName = "C:\Users\david\Desktop\roz\projekt\20240222";
+% fileName = "E:\Škola\Rocnik5\MPC-ROZ\projekt\project_MPC-ROZ\Dataset";
 
 for i=11:35
     I = imread(fileName + "\VG25_2_0"+string(i)+"_GO_E2000_6m.png");

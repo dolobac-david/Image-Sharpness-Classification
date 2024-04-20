@@ -2,7 +2,8 @@ clear all
 close all
 
 
-folder_path = 'cropped/23m';
+% folder_path = 'cropped/23m';
+ folder_path = "C:\Users\david\Desktop\roz\projekt\cropped\23m";
 image_files = dir(fullfile(folder_path, '*.png'));
 
 all_images = cell(1, numel(image_files));
