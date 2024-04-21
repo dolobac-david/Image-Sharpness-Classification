@@ -1,9 +1,16 @@
 % Estimate MTF of star in given image.
-function [linePairsPerPictureHeight, C, MTF] = estimateMTF(I, imgHeight, imgWidth, centerOfStar, numberOfLinePairsOfStar, maxRadius)
+function [linePairsPerPictureHeight, C, MTF] = estimateMTF(I, imgHeight, imgWidth, centerOfStar, numberOfLinePairsOfStar, maxRadius, maxRadiusKnown)
 
 % Transform circles around center of star into spatial frequency Line Pairs / Picture Height
 % and estimate contrast for every circle.
-radii = maxRadius:-2:10;    
+if maxRadiusKnown
+    numberOfCircles = 49;
+    minRadius = 10;
+    radiusStep = (maxRadius-minRadius)/numberOfCircles;
+    radii = maxRadius:-radiusStep:minRadius; 
+else
+    radii = maxRadius:-2:10;
+end
 linePairWidthInPixels =  zeros(1,width(radii))';
 linePairsPerPictureHeight = zeros(1,width(radii))';
 %     linePairsPerPixel = zeros(1,width(radii))';
@@ -32,7 +39,8 @@ for j=1:width(radii)
 
     Imax = max(pixelValues);
     Imin = min(pixelValues);
-    % Contras on lowest frequency which correponds to biggest circle
+    
+    % Contrast on lowest frequency which correponds to biggest circle
     if j==1
         C(j) = (Imax -Imin) /(Imax+Imin);
     end

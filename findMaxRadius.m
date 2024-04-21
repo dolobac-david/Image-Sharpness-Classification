@@ -6,9 +6,10 @@ radius_step = 2;
 pixelValues = pixelValuesOfCircle(I,imgHeight, imgWidth, centerOfStar, initialMaxRadius);
 peaks = findpeaks(double(pixelValues));
 numberOfLinePairsOfStar = width(peaks);
+maxRadiusKnown = false;
 
 [~, ~, MTF] = estimateMTF(I, imgHeight, imgWidth, centerOfStar, ...
-    numberOfLinePairsOfStar, initialMaxRadius);
+    numberOfLinePairsOfStar, initialMaxRadius, maxRadiusKnown);
 
 %% Calculating the maximum radius
 %Get local Max/Min
