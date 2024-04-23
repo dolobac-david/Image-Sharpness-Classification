@@ -1,7 +1,7 @@
 clear all
 close all
 
-folder_path = 'Dataset/';
+folder_path = 'C:\Users\david\Desktop\roz\projekt\20240222/';
 image_files = dir(fullfile(folder_path, '*.png'));
 
 

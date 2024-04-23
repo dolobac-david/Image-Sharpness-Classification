@@ -1,6 +1,6 @@
 function C1200 = estimateC1200(CContainer, LPPHContainer, dataSet)
 
-C1200 = zeros(1,width(CContainer));
+C1200 = nan(1,width(CContainer));
 for i=1:width(CContainer)
     % Find LP/PH where contrast is 1200, approximately between two closest points.
     C = CContainer{i};
