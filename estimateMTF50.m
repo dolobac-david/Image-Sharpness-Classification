@@ -7,6 +7,8 @@ for i=1:width(MTFContainer)
     LPPH = LPPHContainer{i};
     a = find(MTF > 0.5);
     idx = a(end);
+
+    % Star was not detected.
     if dataSet == "6m"
         if i == 7 || i == 11
             continue;
