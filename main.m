@@ -10,45 +10,51 @@ angles = 1:360;
 dataSet = "6m";
 % dataSet = "23m";
 
+% Choose.
+% frequencyType = "Line Pairs / Picture Height";
+frequencyType = "Line Pairs / Pixel";
+
 for i=11:35
     I = imread(fileName + "\VG25_2_0"+string(i)+"_GO_E2000_"+dataSet+".png");
     [imgHeight,imgWidth] = size(I);
 
     % Find initial center of star.
-    initialCenterOfStar= findCenterOfStar(I);
+    centerOfStar= findCenterOfStar(I);
 
     % Find max radius of star.
     if dataSet == "6m"
-        maxRadius = findMaxRadius(I, imgHeight, imgWidth, initialCenterOfStar);
+        maxRadius = findMaxRadius(I, imgHeight, imgWidth, centerOfStar, frequencyType);
+%             maxRadius = 80;
     elseif dataSet == "23m"
         maxRadius = 40;
     end
     maxRadiusKnown = true;
 
-%     figure(1);
+%     figure;
 %     imshow(I);
 %     hold on;
 %     title("Center of star, image " + string(i));
-%     plot(initialCenterOfStar(1),initialCenterOfStar(2),'Color','green','Marker','+','MarkerSize',10);
-%     drawcircle('Center',[initialCenterOfStar(1), initialCenterOfStar(2)],'Radius', maxRadius,'StripeColor','red'); 
+%     plot(centerOfStar(1),centerOfStar(2),'Color','green','Marker','+','MarkerSize',10);
+%     drawcircle('Center',[centerOfStar(1), centerOfStar(2)],'Radius', maxRadius,'StripeColor','red'); 
 %     hold off
 
     % Refine location of center.
-    centerOfStar = refineCenterOfStarLocation(I, maxRadius, initialCenterOfStar);
+    centerOfStar = refineCenterOfStarLocation(I, maxRadius, centerOfStar);
 
-%     figure
-%     imshow(I);
-%     hold on;
-%     title("Refined center of star, image " + string(i));
-%     plot(centerOfStar(1),centerOfStar(2),'Color','green','Marker','+','MarkerSize',10);
-%     drawcircle('Center',[centerOfStar(1), centerOfStar(2)],'Radius', maxRadius,'StripeColor','red');
-%     hold off;
+    figure
+    imshow(I);
+    hold on;
+    title("Refined center of star, image " + string(i));
+    plot(centerOfStar(1),centerOfStar(2),'Color','green','Marker','+','MarkerSize',10);
+    drawcircle('Center',[centerOfStar(1), centerOfStar(2)],'Radius', maxRadius,'StripeColor','red');
+    hold off;
 
     % Estimate number of line pairs in star.
     pixelValues = pixelValuesOfCircle(I,imgHeight, imgWidth, centerOfStar, maxRadius);
     [peaks,locs] = findpeaks(double(pixelValues));
+    TF = islocalmin(pixelValues);
     numberOfLinePairsOfStar = width(peaks);
-
+% 
 %     figure;
 %     plot(angles,pixelValues);
 %     hold on;
@@ -56,10 +62,11 @@ for i=11:35
 %     xlabel("angles [rad]");
 %     ylabel("Digital values"); 
 %     plot(locs,peaks,"g+");
+%     plot(find(TF == 1),pixelValues(TF),"r+");
 %     hold off;
-    
-    [linePairsPerPictureHeight, C, MTF] = estimateMTF(I, imgHeight, imgWidth, centerOfStar, ...
-        numberOfLinePairsOfStar, maxRadius, maxRadiusKnown);
+
+    [frequency, C, MTF] = estimateMTF(I, imgHeight, imgWidth, centerOfStar, ...
+        numberOfLinePairsOfStar, maxRadius, maxRadiusKnown, frequencyType);
 % %     figure;
 % %     hold on;
 % %     plot(linePairsPerPictureHeight,MTF)
@@ -74,69 +81,84 @@ for i=11:35
 % %     xlabel("LP/PH");
 % %     ylabel("C");
 %     
+
     MTFContainer{i-10} = MTF;
-    LPPHContainer{i-10} = linePairsPerPictureHeight;
+    frequencyContainer{i-10} = frequency;
     CContainer{i-10} = C;
 end
 
 if dataSet == "6m"
     MTFContainer6m = MTFContainer;
-    LPPHContainer6m = LPPHContainer;
+    frequencyContainer6m = frequencyContainer;
     CContainer6m = CContainer;
 elseif dataSet == "23m"
     MTFContainer23m = MTFContainer;
-    LPPHContainer23m = LPPHContainer;
+    frequencyContainer23m = frequencyContainer;
     CContainer23m = CContainer;
 end
 
 %% Visualization
 
 % Choose:
-% MTFOrC = "MTF";
-MTFOrC = "C";
+MTFOrC = "MTF";
+% MTFOrC = "C";
 
 if MTFOrC == "MTF"
-    visualize(dataSet, MTFOrC, LPPHContainer, MTFContainer);
+    visualize(dataSet, MTFOrC, frequencyContainer, MTFContainer, frequencyType);
 elseif MTFOrC == "C"
-    visualize(dataSet, MTFOrC, LPPHContainer, CContainer);
+    visualize(dataSet, MTFOrC, frequencyContainer, CContainer, frequencyType);
 end
+
 %% Feature extraction
 
 % Choose.
-% feature = "MTF50";
-feature = "C1200";
+feature = "MTF50";
+% feature = "CNyquist";
 
-% MTF50 or F50 - frequency where MTF is 0.5
+% MTF50 - frequency where MTF is 0.5
 if feature == "MTF50"
-    MTF50 = estimateMTF50(MTFContainer, LPPHContainer, dataSet);
+    MTF50 = estimateMTF50(MTFContainer, frequencyContainer, dataSet);
     featurePlot(MTF50,"MTF50", dataSet)
-    threshold = 1166; % from MTF50
-    xline(threshold)
+    if frequencyType == "Line Pairs / Picture Height"
+        threshold = 1166;
+    elseif frequencyType == "Line Pairs / Pixel"
+        threshold = 0.535;
+    end
+%     xline(threshold)
     hold off;
 end
 
-% C1200 - contrast where frequency is 1200 LP/PH
-if feature == "C1200"
-    C1200 = estimateC1200(CContainer, LPPHContainer, dataSet);
-    featurePlot(C1200,"C1200", dataSet);
-    threshold = 0.207; % from C1200
-    xline(threshold)
+% CNyquist - contrast where frequency is 0.5 cycles/pixel
+if feature == "CNyquist"
+    CNyquist = estimateCNyquist(CContainer, frequencyContainer, dataSet);
+    featurePlot(CNyquist,"CNyquist", dataSet);
+%     threshold = 0.207;
+%     xline(threshold)
     hold off;
 end
 
 %% Evaluation
 % Choose.
 % feature = "MTF50";
-feature = "C1200";
+feature = "CNyquist";
 
+% Evaluate for set threshold.
 if feature == "MTF50"
     [TPR,FPR,TNR,precision,accuracy]  = evaluate(MTF50, threshold, dataSet);
-elseif feature == "C1200"
-    [TPR,FPR,TNR,precision,accuracy]  = evaluate(C1200, threshold, dataSet);
+elseif feature == "CNyquist"
+    [TPR,FPR,TNR,precision,accuracy]  = evaluate(CNyquist, threshold, dataSet);
 end
 
 % ROC
-thresholdForROC = 0:0.01:1;
+if feature == "MTF50"
+    minfrequency = min(MTF50)-0.0001;
+    maxfrequency = max(MTF50)+0.0001;
+    step = (maxfrequency - minfrequency)/100;
+    thresholdForROC = minfrequency:step:maxfrequency;
+elseif feature == "CNyquist"
+    thresholdForROC = 0:0.01:1;
+end
+
 FPRVec = zeros(1,width(thresholdForROC));
 TPRVec = zeros(1,width(thresholdForROC));
 if feature == "MTF50"
@@ -145,9 +167,9 @@ if feature == "MTF50"
         FPRVec(i) = FPR;
         TPRVec(i) = TPR;
     end
-elseif feature == "C1200"
+elseif feature == "CNyquist"
     for i=1:width(thresholdForROC)
-        [TPR,FPR,TNR,precision,accuracy]  = evaluate(C1200, thresholdForROC(i), dataSet);
+        [TPR,FPR,TNR,precision,accuracy]  = evaluate(CNyquist, thresholdForROC(i), dataSet);
         FPRVec(i) = FPR;
         TPRVec(i) = TPR;
     end
@@ -157,6 +179,6 @@ figure
 plot(FPRVec,TPRVec)
 AUC = abs(trapz(FPRVec, TPRVec));
 legend("AUC = " + string(AUC),"Location","southeast")
-title("ROC curve")
+title("ROC curve for" + dataSet)
 xlabel("FPR - False positive rate")
 ylabel("TPR - True positive rate")

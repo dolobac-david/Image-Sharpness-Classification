@@ -1,4 +1,4 @@
-function max_radius_circle = findMaxRadius(I, imgHeight, imgWidth, centerOfStar)
+function max_radius_circle = findMaxRadius(I, imgHeight, imgWidth, centerOfStar, frequencyType)
 
 % MTF of initial radius of star.
 initialMaxRadius = 700;
@@ -9,7 +9,7 @@ numberOfLinePairsOfStar = width(peaks);
 maxRadiusKnown = false;
 
 [~, ~, MTF] = estimateMTF(I, imgHeight, imgWidth, centerOfStar, ...
-    numberOfLinePairsOfStar, initialMaxRadius, maxRadiusKnown);
+    numberOfLinePairsOfStar, initialMaxRadius, maxRadiusKnown, frequencyType);
 
 %% Calculating the maximum radius
 %Get local Max/Min

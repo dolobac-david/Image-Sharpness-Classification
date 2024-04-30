@@ -4,7 +4,7 @@ function [TPR,FPR,TNR,precision,accuracy]  = evaluate(features, threshold, dataS
 predictedlabels = features > threshold;
 GTLabels = nan(1,width(features));
 
-% Exclude images where star was not detected
+% Without images where star was not detected.
 if dataSet == "6m"
     idxSharp = [4 5 10 12 14 18 20];
     idxBlur = [1 2 8 15 16 21 22];

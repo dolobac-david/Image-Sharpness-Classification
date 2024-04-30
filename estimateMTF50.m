@@ -1,10 +1,10 @@
 % MTF50 or F50 - frequency where MTF is 0.5
-function MTF50 = estimateMTF50(MTFContainer, LPPHContainer, dataSet)
-MTF50 = zeros(1,width(MTFContainer));
+function MTF50 = estimateMTF50(MTFContainer, frequencyContainer, dataSet)
+MTF50 = nan(1,width(MTFContainer));
 for i=1:width(MTFContainer)
     % Find frequency of MTF = 0.50 approximately between two closest points.
     MTF = MTFContainer{i};
-    LPPH = LPPHContainer{i};
+    frequency = frequencyContainer{i};
     a = find(MTF > 0.5);
     idx = a(end);
 
@@ -18,6 +18,6 @@ for i=1:width(MTFContainer)
             continue;
         end
     end
-    MTF50(i) = interp1([MTF(idx)  MTF(idx+1)],[LPPH(idx)  LPPH(idx+1)], 0.5);
+    MTF50(i) = interp1([MTF(idx)  MTF(idx+1)],[frequency(idx)  frequency(idx+1)], 0.5);
 end
 end
