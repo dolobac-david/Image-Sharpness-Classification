@@ -8,6 +8,10 @@ for i=1:width(MTFContainer)
     a = find(MTF > 0.5);
     idx = a(end);
 
+    if(idx >= (width(MTF)-1))
+        continue;
+    end
+
     % Star was not detected.
     if dataSet == "6m"
         if i == 7 || i == 11

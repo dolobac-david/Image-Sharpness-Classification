@@ -2,12 +2,15 @@ clear all
 close all
 clc
 
-fileName = "C:\Users\david\Desktop\roz\projekt\20240222";
+%fileName = "C:\Users\david\Desktop\roz\projekt\20240222";
+fileName = "E:\Škola\Rocnik5\MPC-ROZ\projekt\project_MPC-ROZ\Dataset";
 
 % Choose:
  dataSet = "6m";
 %  dataSet = "23m";
 
+% frequencyType = "Line Pairs / Picture Height";
+frequencyType = "Line Pairs / Pixel";
   j = 1;
 for i=11:35
     I = imread(fileName + "\VG25_2_0"+string(i)+"_GO_E2000_"+dataSet+".png");
@@ -18,7 +21,7 @@ for i=11:35
 
     % Find max radius of star.
     if dataSet == "6m"
-        maxRadius = findMaxRadius(I, imgHeight, imgWidth, initialCenterOfStar);
+        maxRadius = findMaxRadius(I, imgHeight, imgWidth, initialCenterOfStar, frequencyType);
     elseif dataSet == "23m"
         maxRadius = 40;
     end
@@ -76,7 +79,6 @@ end
 
 %% Autocorrelation
 for i = 1:25
-lags = -180:179; % Define the range of lags
 autocorr_values = autocorr(filtered_data{1,i}, 359);
 
 % Plot autocorrelation

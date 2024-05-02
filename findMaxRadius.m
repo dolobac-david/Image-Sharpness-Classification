@@ -35,6 +35,10 @@ min_of_local_min = 0;
 minima_cnt = 7;
 indices_min = find(local_minima == 1);
 indices_min_after_min = find(indices_min >= first_min_idx);
+if(isempty(indices_min))
+    max_radius_circle = 700/2;
+    return;
+end
 min_after_min = MTF(indices_min(indices_min_after_min(1:minima_cnt)));
 
 
@@ -86,6 +90,12 @@ end
 if(variation_idxs(2) > 0)
     indices_max = find(local_maxima == 1);
     indices_max_after_min = find(indices_max > indices_min(indices_min_after_min(variation_idxs(2))) );
+    if(isempty(indices_max_after_min))
+        indices_max_after_min = width(indices_max);
+    else
+        %indices_max_after_min = indices_max(indices_max_after_min(1));
+        %indices_max_after_min = indices_max(indices_max_after_min(1));
+    end
     %it is not after the local maxima after the new_min_idx/first_min_idx
     if(variation_idxs(2) > 0 && ( indices_max(indices_max_after_min(1)) > indices_min(indices_min_after_min(variation_idxs(2))) ))      % idx MTF > idx MTF
         new_min_idx = indices_min(indices_min_after_min(variation_idxs(2)));
@@ -98,7 +108,12 @@ indices_max = find(local_maxima == 1);
 indices_max_after_min = find(indices_max > new_min_idx);
 
 % max_radius_idx -> which MTF idx it is
-max_radius_idx = indices_max(indices_max_after_min(1));
+if(isempty(indices_max_after_min))
+    max_radius_idx = width(indices_max);
+else
+    max_radius_idx = indices_max(indices_max_after_min(1));
+end
+%max_radius_idx = indices_max(indices_max_after_min(1));
 max_radius_circle = initialMaxRadius - (max_radius_idx*radius_step);
 
 %  %% Graph Plotting
