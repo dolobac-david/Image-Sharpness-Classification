@@ -37,6 +37,8 @@ points = detectMinEigenFeatures(ICropped);
 dist = vecnorm((points.Location - centerGuess),2,2);
 [~,idx] = min(dist);
 centerOfCroppedStar = points.Location(idx,:);
+
+% Transform back to original coordinate system.
 centerOfStar(1) = centerOfCroppedStar(1) + round(leftBoundary)-1;
 centerOfStar(2) = centerOfCroppedStar(2) + round(topBoundary)-1;
 

@@ -49,20 +49,18 @@ for i=11:35
     drawcircle('Center',[centerOfStar(1), centerOfStar(2)],'Radius', maxRadius,'StripeColor','red');
     hold off;
 
-    % Estimate number of line pairs in star.
+    % Estimate number of line pairs in star from max radius.
     pixelValues = pixelValuesOfCircle(I,imgHeight, imgWidth, centerOfStar, maxRadius);
     [peaks,locs] = findpeaks(double(pixelValues));
-    TF = islocalmin(pixelValues);
     numberOfLinePairsOfStar = width(peaks);
-% 
+
 %     figure;
 %     plot(angles,pixelValues);
 %     hold on;
-%     title("radius = " + string(maxRadius) + ", angle step size = 1 deg")
-%     xlabel("angles [rad]");
+%     title("radius = " + string(maxRadius))
+%     xlabel("angles [deg]");
 %     ylabel("Digital values"); 
-%     plot(locs,peaks,"g+");
-%     plot(find(TF == 1),pixelValues(TF),"r+");
+%     plot(angles(locs),peaks,"g+");
 %     hold off;
 
     [frequency, C, MTF] = estimateMTF(I, imgHeight, imgWidth, centerOfStar, ...
@@ -132,15 +130,15 @@ end
 if feature == "CNyquist"
     CNyquist = estimateCNyquist(CContainer, frequencyContainer, dataSet);
     featurePlot(CNyquist,"CNyquist", dataSet);
-%     threshold = 0.207;
+    threshold = 0.24;
 %     xline(threshold)
     hold off;
 end
 
 %% Evaluation
 % Choose.
-% feature = "MTF50";
-feature = "CNyquist";
+feature = "MTF50";
+% feature = "CNyquist";
 
 % Evaluate for set threshold.
 if feature == "MTF50"

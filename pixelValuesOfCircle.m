@@ -1,12 +1,12 @@
 % Get intensity profile of given circle.
 function [pixelValues, outOfBoundary]= pixelValuesOfCircle(I,imgHeight, imgWidth, centerOfCircle, radius)
-
+% 
 % figure;
 % imshow(I)
-% title('Radius = ' + string(radius);
+% title('Radius = ' + string(radius));
 % hold on;
-% plot(centerOfStar(1),centerOfStar(2),'r+', 'MarkerSize', 10);
-% viscircles(centerOfStar,radius);
+% plot(centerOfCircle(1),centerOfCircle(2),'r+', 'MarkerSize', 10);
+% viscircles(centerOfCircle,radius);
 
 angles = 1:360;
 x = centerOfCircle(1) + radius*cosd(angles);

@@ -2,8 +2,7 @@
 function [frequency, C, MTF] = estimateMTF(I, imgHeight, imgWidth, centerOfStar, numberOfLinePairsOfStar, maxRadius, maxRadiusKnown, frequencyType)
 
 % Transform circles around center of star into spatial frequency Line Pairs
-% / Picture Height or cycles / pixel
-% and MTF for every circle.
+% / Picture Height or cycles / pixel and compute MTF value for every circle.
 angles = 1:360;
 if maxRadiusKnown
     numberOfCircles = 49;
@@ -33,28 +32,15 @@ for j=1:width(radii)
     end
 
     pixelValues = pixelValuesOfCircle(I,imgHeight, imgWidth, centerOfStar, radii(j));
-
-%         figure;
-%         plot(pixelValues);
-%         hold on;
-%         title("radius = " + string(radii(j)) + ", angle step size = 1 deg")
-%         xlabel("angles [deg]");
-%         ylabel("Digital values");
-
-%     if maxRadiusKnown
-%         [peaks,locs] = findpeaks(double(pixelValues));
-%         TF = islocalmin(pixelValues);
-%     
-%         figure;
-%         plot(angles,pixelValues);
-%         hold on;
-%         title("radius = " + string(radii(j)) + ", angle step size = 1 deg")
-%         xlabel("angles [rad]");
-%         ylabel("Digital values"); 
-%         plot(locs,peaks,"g+");
-%         plot(find(TF == 1),pixelValues(TF),"r+");
-%         hold off;
-%     end
+ 
+%     figure;
+%     plot(angles,pixelValues);
+%     hold on;
+%     title("radius = " + string(radii(j)) + ", angle step size = 1 deg")
+%     xlabel("angles [rad]");
+%     ylabel("Digital values"); 
+%     plot(angles,peaks,"g+");
+%     hold off;
 
     Imax = max(pixelValues);
     Imin = min(pixelValues);
