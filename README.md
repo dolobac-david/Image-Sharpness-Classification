@@ -1,1 +1,1 @@
-# project_MPC-ROZ
+# Image sharpness classification 
